@@ -3,7 +3,7 @@
 $payload = [
     "sub" => $user["IDuser"],
     "name" => $user["Name"],
-    "exp" => time() + 2000
+    "exp" => time() + 20000
 ];
 
 $JwtController = new Jwt($_ENV["SECRET_KEY"]);
