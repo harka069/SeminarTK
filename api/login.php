@@ -42,7 +42,7 @@ if ($user === false) {
     exit;
 }
 
-if (!password_verify($data['password'], $user['password_hash'])) {
+if (!password_verify($data['password'], $user['Password'])) {
     http_response_code(401);
     echo json_encode(["message" => "invalid authentication"]);
     exit;
