@@ -26,7 +26,13 @@ class Auth
             http_response_code(401);
             echo json_encode(["message" => "invalid signature"]);
             return false;
-        } catch (Exception $e) {
+        } catch (TokenExpiredException $e) {
+
+            http_response_code(401);
+            echo json_encode(["message" =>  "Token expired"]);
+
+            return false;
+        }catch (Exception $e) {
 
             http_response_code(400);
             echo json_encode(["message" => $e->getMessage()]);
