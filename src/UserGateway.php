@@ -12,8 +12,8 @@ class UserGateway
     public function getByID(int $id): array | false
     {
         $sql = "SELECT *
-                FROM user
-                WHERE id = :id";
+                FROM users
+                WHERE IDuser = :id";
                 
         $stmt = $this->conn->prepare($sql);
         
@@ -26,7 +26,7 @@ class UserGateway
 
     public function getByUsername(string $username): array | false
     {
-        $sql = 'SELECT * FROM user WHERE username = :username';
+        $sql = 'SELECT * FROM users WHERE name = :username';
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':username', $username, PDO::PARAM_STR);
 
