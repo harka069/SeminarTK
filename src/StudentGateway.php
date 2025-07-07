@@ -10,7 +10,7 @@ class StudentGateway
 
     public function getAllStudents(): array
     {
-        $sql = "SELECT * FROM students";
+        $sql = "SELECT * FROM users";
 
         $stmt = $this->conn->query($sql);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
