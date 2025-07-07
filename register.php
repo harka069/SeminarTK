@@ -2,8 +2,23 @@
 
 require __DIR__ . "/vendor/autoload.php";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+switch ($_SERVER["REQUEST_METHOD"]) 
+{
+    case 'POST':
+        new_user();
+        break;
+    case 'PUT':
+        $user_id = $_GET['userID'] ?? null;
+    if ($user_id && is_numeric($user_id)) {
+        update_user($user_id);
+    } else {
+        http_response_code(400);
+        echo json_encode(["error" => "Invalid or missing user ID."]);
+    }
+        break;
+}
 
+function new_user(){
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
     $dotenv->load();
 
@@ -13,21 +28,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_ENV["DB_USER"],
         $_ENV["DB_PASS"]
     );
-
     $conn = $database->getConnection();
 
-    $sql = "INSERT INTO user (name, username, password_hash)
-            VALUES (:name, :username, :password_hash)";
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+
+    $sql = "INSERT INTO users (Name, Surname, Password,Mail) VALUES (:name, :surname, :password_hash, :email)";
 
     $stmt = $conn->prepare($sql);
 
     $password_hash = password_hash($_POST["password"], PASSWORD_DEFAULT);
 
-
-    $stmt->bindValue(":name", $_POST["name"], PDO::PARAM_STR);
-    $stmt->bindValue(":username", $_POST["username"], PDO::PARAM_STR);
+    $stmt->bindValue(":name", $data["name"], PDO::PARAM_STR);
+    $stmt->bindValue(":surname", $data["surname"], PDO::PARAM_STR);
     $stmt->bindValue(":password_hash", $password_hash, PDO::PARAM_STR);
-
+    $stmt->bindValue(":email", $data["email"], PDO::PARAM_STR);
 
     $stmt->execute();
 
@@ -35,38 +50,64 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit;
 }
 
-?>
-<!DOCTYPE html>
-<html lang="en">
+function update_user($user_id) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+    $database = new Database(
+        $_ENV["DB_HOST"],
+        $_ENV["DB_NAME"],
+        $_ENV["DB_USER"],
+        $_ENV["DB_PASS"]
+    );
+    $conn = $database->getConnection();
 
-<body>
-    <div class="container">
-        <h2>User Registration</h2>
-        <form action="register.php" method="post">
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Register">
-            </div>
-        </form>
-    </div>
-</body>
+    // Read JSON body
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
 
-</html>
+    // Build dynamic SQL for only provided fields
+    $fields = [];
+    $params = [];
+
+    if (!empty($data["name"])) {
+        $fields[] = "Name = :name";
+        $params[":name"] = $data["name"];
+    }
+    if (!empty($data["surname"])) {
+        $fields[] = "Surname = :surname";
+        $params[":surname"] = $data["surname"];
+    }
+    if (!empty($data["email"])) {
+        $fields[] = "Mail = :email";
+        $params[":email"] = $data["email"];
+    }
+    if (!empty($data["password"])) {
+        $fields[] = "Password = :password_hash";
+        $params[":password_hash"] = password_hash($data["password"], PASSWORD_DEFAULT);
+    }
+    if (empty($fields)) {
+        http_response_code(400);
+        echo json_encode(["error" => "No data to update."]);
+        exit;
+    }
+
+    // Build the SQL query
+    $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE IDuser = :user_id";
+    $stmt = $conn->prepare($sql);
+
+    // Bind parameters
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(":user_id", $user_id, PDO::PARAM_INT);
+
+    // Execute and respond
+    if ($stmt->execute()) {
+        echo json_encode(["success" => "User updated successfully."]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["error" => "Failed to update user."]);
+    }
+    exit;
+}
