@@ -26,15 +26,14 @@ $JwtCtrl = new Jwt($_ENV["SECRET_KEY"]);
 $auth = new Auth($user, $JwtCtrl);
 
 if (!$auth->authenticateJWTToken()) {
+    echo $auth->getUserIdFromToken();
+    //echo $auth->getUserIdFromToken();
     exit;
 }
 
 
 
 $gateway = new StudentGateway($database);
-
 $controller = new StudentController($gateway);
-
-
 
 $controller->processRequest($_SERVER['REQUEST_METHOD']);
