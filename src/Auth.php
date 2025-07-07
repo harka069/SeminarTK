@@ -2,7 +2,7 @@
 class Auth
 {
 
-
+    private array $payload =[];
 
     public function __construct(private UserGateway $user_gateway, private Jwt $JwtCtrl)
     {
@@ -20,13 +20,14 @@ class Auth
         }
 
         try {
-            $data = $this->JwtCtrl->decode($matches[1]);
-        } catch (InvalidSignatureException) {
+            //$data = $this->JwtCtrl->decode($matches[1]);
+            $this->payload = $this->JwtCtrl->decode($matches[1]);
+        } catch (InvalidSignatureException $e) {
 
             http_response_code(401);
             echo json_encode(["message" => "invalid signature"]);
             return false;
-        } catch (TokenExpiredException $e) {
+        }catch (TokenExpiredException $e) {
 
             http_response_code(401);
             echo json_encode(["message" =>  "Token expired"]);
@@ -42,5 +43,15 @@ class Auth
 
 
         return true;
+
+    }
+    public function getUserIdFromToken(): int
+    {
+        if (!isset($this->payload["sub"])) {
+            echo json_encode(["message" => "User ID (sub) not found in token"]);
+            exit;
+        }
+
+        return $this->payload["sub"];
     }
 }
