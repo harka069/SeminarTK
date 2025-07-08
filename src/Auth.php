@@ -10,7 +10,7 @@ class Auth
 
 
 
-    public function authenticateJWTToken(): bool
+    public function authenticateJWTToken(): int|false
     {
 
         if (!preg_match("/^Bearer\s+(.*)$/", $_SERVER["HTTP_AUTHORIZATION"], $matches)) {
@@ -40,9 +40,9 @@ class Auth
             return false;
         }
 
+        return $this->payload["sub"];
 
-
-        return true;
+        #return true;
 
     }
     public function getUserIdFromToken(): int
