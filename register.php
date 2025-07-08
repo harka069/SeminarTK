@@ -33,17 +33,22 @@ function new_user(){
     $json = file_get_contents('php://input');
     $data = json_decode($json, true);
 
+    $mail_exist  = new UserGateway($database);
+
+    if(($mail_exist->getByMail($data['email']))!= false)
+    {
+        http_response_code(403);
+        echo json_encode(["error" => "User already exists"]);
+        exit;
+    }
+    
     $sql = "INSERT INTO users (Name, Surname, Password,Mail) VALUES (:name, :surname, :password_hash, :email)";
-
     $stmt = $conn->prepare($sql);
-
-    $password_hash = password_hash($_POST["password"], PASSWORD_DEFAULT);
-
+    $password_hash = password_hash($data["password"], PASSWORD_DEFAULT);
     $stmt->bindValue(":name", $data["name"], PDO::PARAM_STR);
     $stmt->bindValue(":surname", $data["surname"], PDO::PARAM_STR);
     $stmt->bindValue(":password_hash", $password_hash, PDO::PARAM_STR);
     $stmt->bindValue(":email", $data["email"], PDO::PARAM_STR);
-
     $stmt->execute();
 
     echo "Thank you for registering.";
