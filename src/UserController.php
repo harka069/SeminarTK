@@ -1,6 +1,6 @@
 <?php
 
-class UserController
+class UserController extends Controller
 {
     public function __construct(private UserGateway $gateway)
     {
@@ -11,22 +11,24 @@ class UserController
        switch ($method) {
             case "GET":
                 echo json_encode($this->gateway->getAllUsers());
+                //TODO GET SINGLE USER
                 break;
 
             case "PUT":
-                $id     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
+                //$id     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
                 if (!$id) {
                     http_response_code(400);
-                    echo json_encode(["error" => "Missing user ID"]);
+                    $this->NotEnoughParameters();
                     return;
                 }
                 $this->update_user((int)$id);
                 break;
             case "POST":
                // $id     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
+               //TODO - into other endpoint, her is more like register user place
                 if (!$id) {
                     http_response_code(400);
-                    echo json_encode(["error" => "Missing user ID"]);
+                    $this->NotEnoughParameters();
                     return;
                 }
                 $this->InsertQuery((int)$id);
@@ -34,23 +36,22 @@ class UserController
             case "DELETE":
                 $znamka     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
                  if (!$id) {
-                    http_response_code(400);
-                    echo json_encode(["error" => "Missing user ID"]);
+                    $this->NotEnoughParameters();
                     return;
                 } 
                 $this->delete_user((int)$id);  
                 break;
             default:
-                $this->methodNotAllowed("GET, PUT");
+                $this->methodNotAllowed("GET, PUT,DELETE");
         }
     }
-
-    private function methodNotAllowed(string $allowed_method): void
+/*
+    public function methodNotAllowed(string $allowed_method): void
     {
         http_response_code(405);
         header("Allow: $allowed_method");
-    }
-    public function update_user(int $id): void
+    }*/
+    private function update_user(int $id): void
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -82,7 +83,7 @@ class UserController
             echo json_encode(["error" => "Update failed"]);
         }
     }
-    public function delete_user(int $id)
+    private function delete_user(int $id)
     {
        if ($this->gateway->deleteUser($id)) {
             echo json_encode(["message" => "User deleted successfully"]);
@@ -91,7 +92,7 @@ class UserController
             echo json_encode(["error" => "Delete failed"]);
         } 
     }
-    public function InsertQuery(int $id){
+    private function InsertQuery(int $id){
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
         $fields = ["znamka", "model", "start_date", "end_date", "fuel", "max_km", "min_km"];
@@ -109,14 +110,21 @@ class UserController
             echo json_encode(["error" => "Query insert failed"]);
         }
     }
-    public function NotEnoughParameters(): void
+    /*
+    *NOT needed since we have controller class
+    private function NotEnoughParameters(): void
     {
         http_response_code(400); // Bad Request
         echo json_encode(["error" => "Not enough parameters"]);
     }
-    public function clean_string_input(string|null $input): string|null 
+    private function clean_string_input(string|null $input): string|null 
     {
     return $input !== null ? strip_tags($input) : null;
     }
+    public function methodNotAllowed(string $allowed_method): void
+    {
+        http_response_code(405);
+        header("Allow: $allowed_method");
+    }*/
 
 }

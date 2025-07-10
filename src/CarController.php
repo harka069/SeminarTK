@@ -1,5 +1,5 @@
 <?php
-class CarController
+class CarController extends Controller
 {
     public function __construct(private CarGateway $gateway)
     {
@@ -41,22 +41,7 @@ class CarController
         }
     }
 
-    private function methodNotAllowed(string $allowed_method): void
-    {
-        http_response_code(405);
-        header("Allow: $allowed_method");
-    }
-    function NotEnoughParameters(): void
-    {
-        http_response_code(400); // Bad Request
-        echo json_encode(["error" => "Not enough parameters"]);
-    }
-    public function clean_string_input(string|null $input): string|null 
-    {
-    return $input !== null ? strip_tags($input) : null;
-    }
-
-    public function CarByVIN(string $VIN)
+    private function CarByVIN(string $VIN)
     {
         if (preg_match('/^[A-HJ-NPR-Z0-9]{17}$/i', $VIN) !== 1) {
             http_response_code(400);
@@ -65,7 +50,7 @@ class CarController
         }
         echo json_encode($this->gateway->CarByVIN($VIN));
     }
-    public function CarByQuerry(string $start_date, string $end_date, string $brand, string $model, int $max_km,int $min_km,string $fuel)
+    private function CarByQuerry(string $start_date, string $end_date, string $brand, string $model, int $max_km,int $min_km,string $fuel)
     {
         $from = DateTime::createFromFormat('Y-m-d', $start_date);
         $to = DateTime::createFromFormat('Y-m-d', $end_date);
@@ -92,10 +77,25 @@ class CarController
         echo json_encode($this->gateway->MotStatByQuerry($start_date, $end_date, $brand, $model, $max_km, $min_km, $fuel));
     }
 
-    public function ModelsByBrand(string $brand)
+    private function ModelsByBrand(string $brand)
     {
        echo json_encode($this->gateway->ModelsByBrand($brand));
     }
-    
+    /*
+    *NOT needed since we have controller class
+    private function NotEnoughParameters(): void
+    {
+        http_response_code(400); // Bad Request
+        echo json_encode(["error" => "Not enough parameters"]);
+    }
+    private function clean_string_input(string|null $input): string|null 
+    {
+    return $input !== null ? strip_tags($input) : null;
+    }
+    public function methodNotAllowed(string $allowed_method): void
+    {
+        http_response_code(405);
+        header("Allow: $allowed_method");
+    }*/
 
 }
