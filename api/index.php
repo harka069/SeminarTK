@@ -10,7 +10,11 @@ $parts = explode("/", $path);
 
 
 $resource = $parts[3];
-$order = $parts[4];
+if (isset($parts[4]))
+{
+    $subresource = $parts[4];
+}
+
 
 $user = new UserGateway($database);
 $JwtCtrl = new Jwt($_ENV["SECRET_KEY"]);
@@ -20,26 +24,26 @@ if (!$IDuser) {exit;}
 
 switch($resource){
     case "users":
-        switch($order){
-            case "getAllUsers":
-                getAllUsers($database);
-                break;
-            case "updateUser":
-                updateUser($database,$IDuser);    
-                break;
-            case "deleteUser":
-                deleteUser($database,$IDuser);
-                break;
-            case "saveQuery":
-                SaveQuerry($database,$IDuser);
-                break;
+        switch($subresource){
+            case "favourite":
+                $gateway = new FavouriteGateway($database);
+                $controller = new FavouriteController($gateway);
+                $controller->processRequest($_SERVER['REQUEST_METHOD'],$IDuser);
+            break;
             default:
-                http_response_code(404);
-                exit;
+                $gateway = new UserGateway($database);
+                $controller = new UserController($gateway);
+                $controller->processRequest($_SERVER['REQUEST_METHOD'],$IDuser); 
+            break;
         }
-        break;
+        exit;
+        
     case "cars":
-        switch($order){
+        $gateway = new CarGateway($database);
+        $controller = new CarController($gateway);
+        $controller->processRequest($_SERVER['REQUEST_METHOD']); 
+
+        /*switch($subresource){
             case "MotStatByQuerry":
                 MotStatByQuerry($database);
                 break;
@@ -52,12 +56,13 @@ switch($resource){
             default:
                 http_response_code(404);
                 exit;
-        }
+        }*/
         break;
         
 
 }
-
+/*
+*NOT needed since we do everything in Controller functions (Car,User,Favourite)
 function getAllUsers($database)
 {
     $gateway = new UserGateway($database);
@@ -106,4 +111,4 @@ function SaveQuerry($database,$IDuser)
     $gateway = new UserGateway($database);
     $controller = new UserController($gateway);
     $controller->processRequest($_SERVER['REQUEST_METHOD'],$IDuser);
-}
+}*/
