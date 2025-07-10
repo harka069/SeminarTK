@@ -74,6 +74,30 @@ class UserGateway
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
         return $stmt->execute();
+        }
+    public function InsertQuery(int $id, array $data): bool
+    {
+        $columns = ['user_id']; // assume 'user_id' is the column for $id
+        $placeholders = [':id'];
+        $params = [':id' => $id];
+
+        foreach ($data as $key => $value) {
+            $columns[] = $key;
+            $placeholders[] = ":$key";
+            $params[":$key"] = $value;
+        }
+
+        $columnsStr = implode(', ', $columns);
+        $placeholdersStr = implode(', ', $placeholders);
+
+        $sql = "INSERT INTO user_queries ($columnsStr) VALUES ($placeholdersStr)";
+        $stmt = $this->conn->prepare($sql);
+
+        foreach ($params as $param => $value) {
+            $stmt->bindValue($param, $value);
+        }
+
+        return $stmt->execute();
     }
 
 

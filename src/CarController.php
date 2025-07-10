@@ -9,20 +9,27 @@ class CarController
     {
        switch ($method) {
             case "GET":
-                if (!empty($_GET["znamka"])&&
-                !empty($_GET["model"])&&
-                !empty($_GET["start_date"])&&
-                !empty($_GET["end_date"])
-                )
-                $start_date = $_GET["start_date"];
-                $end_date   = $_GET["end_date"];
-                $znamka     = $_GET["znamka"];
-                $model      = $_GET["model"];
-                $max_km      = $_GET["max_km"];
-                $min_km     = $_GET["min_km"];
-            $fuel           = $_GET["fuel"];
-                $this->CarByQuerry($start_date, $end_date,$znamka, $model,$max_km, $min_km,$fuel);
-            break;
+                $znamka     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
+                $model      = $this->clean_string_input(filter_input(INPUT_GET, "model", FILTER_UNSAFE_RAW));
+                $start_date = $this->clean_string_input(filter_input(INPUT_GET, "start_date", FILTER_UNSAFE_RAW));
+                $end_date   = $this->clean_string_input(filter_input(INPUT_GET, "end_date", FILTER_UNSAFE_RAW));
+                $fuel       = $this->clean_string_input(filter_input(INPUT_GET, "fuel", FILTER_UNSAFE_RAW));
+                $VIN        = $this->clean_string_input(filter_input(INPUT_GET, "VIN", FILTER_UNSAFE_RAW));
+
+                $max_km     = filter_input(INPUT_GET, "max_km", FILTER_VALIDATE_INT);
+                $min_km     = filter_input(INPUT_GET, "min_km", FILTER_VALIDATE_INT);
+
+                if($znamka && $model && $start_date && $end_date && $max_km && $fuel) {
+                    $this->CarByQuerry($start_date, $end_date,$znamka, $model,$max_km, $min_km,$fuel);
+                }elseif($VIN){
+                    $this->CarByVIN($VIN);
+                }elseif($znamka){
+                    $this->ModelsByBrand($znamka);
+                }
+                else{
+                    $this->NotEnoughParameters();
+                }
+                break;
             case "PUT":
               
             break;
@@ -39,9 +46,21 @@ class CarController
         http_response_code(405);
         header("Allow: $allowed_method");
     }
+    function NotEnoughParameters(): void
+    {
+        http_response_code(400); // Bad Request
+        echo json_encode(["error" => "Not enough parameters"]);
+    }
+    public function clean_string_input(string|null $input): string|null 
+    {
+    return $input !== null ? strip_tags($input) : null;
+    }
+
     public function CarByVIN(string $VIN)
     {
         if (preg_match('/^[A-HJ-NPR-Z0-9]{17}$/i', $VIN) !== 1) {
+            http_response_code(400);
+            echo json_encode(["error"=> 'VIN is not in correct format']);
             exit;
         }
         echo json_encode($this->gateway->CarByVIN($VIN));
@@ -70,7 +89,12 @@ class CarController
             echo json_encode(["error" => "`start$start_date` must be earlier than `end_date$end_date`."]);
         exit;
         }
-        echo json_encode($this->gateway->CarByQuerry($start_date, $end_date, $brand, $model, $max_km, $min_km, $fuel));
+        echo json_encode($this->gateway->MotStatByQuerry($start_date, $end_date, $brand, $model, $max_km, $min_km, $fuel));
+    }
+
+    public function ModelsByBrand(string $brand)
+    {
+       echo json_encode($this->gateway->ModelsByBrand($brand));
     }
     
 

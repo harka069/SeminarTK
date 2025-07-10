@@ -14,6 +14,7 @@ class UserController
                 break;
 
             case "PUT":
+                $id     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
                 if (!$id) {
                     http_response_code(400);
                     echo json_encode(["error" => "Missing user ID"]);
@@ -21,13 +22,24 @@ class UserController
                 }
                 $this->update_user((int)$id);
                 break;
+            case "POST":
+               // $id     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
+                if (!$id) {
+                    http_response_code(400);
+                    echo json_encode(["error" => "Missing user ID"]);
+                    return;
+                }
+                $this->InsertQuery((int)$id);
+                break;
             case "DELETE":
+                $znamka     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
                  if (!$id) {
                     http_response_code(400);
                     echo json_encode(["error" => "Missing user ID"]);
                     return;
                 } 
                 $this->delete_user((int)$id);  
+                break;
             default:
                 $this->methodNotAllowed("GET, PUT");
         }
@@ -78,6 +90,33 @@ class UserController
             http_response_code(500);
             echo json_encode(["error" => "Delete failed"]);
         } 
+    }
+    public function InsertQuery(int $id){
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+        $fields = ["znamka", "model", "start_date", "end_date", "fuel", "max_km", "min_km"];
+
+        foreach ($fields as $field) {
+            if(!isset($data[$field])) {
+                $this->NotEnoughParameters();
+                exit;
+            }
+        }
+        if ($this->gateway->InsertQuery($id,$data)) {
+            echo json_encode(["message" => "Querry inserted successfully"]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["error" => "Query insert failed"]);
+        }
+    }
+    public function NotEnoughParameters(): void
+    {
+        http_response_code(400); // Bad Request
+        echo json_encode(["error" => "Not enough parameters"]);
+    }
+    public function clean_string_input(string|null $input): string|null 
+    {
+    return $input !== null ? strip_tags($input) : null;
     }
 
 }
