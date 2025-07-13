@@ -8,7 +8,7 @@ $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
 $parts = explode("/", $path);
 
-
+ $subresource = "nisubresors";
 $resource = $parts[3];
 if (isset($parts[4]))
 {
@@ -20,7 +20,9 @@ $user = new UserGateway($database);
 $JwtCtrl = new Jwt($_ENV["SECRET_KEY"]);
 $auth = new Auth($user, $JwtCtrl);
 $IDuser = $auth->authenticateJWTToken();
-if (!$IDuser) {exit;}
+if (!$IDuser) {
+    header("Location: ../frontend/meni.html");
+    exit;}
 
 switch($resource){
     case "users":

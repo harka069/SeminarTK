@@ -10,8 +10,11 @@ class UserController extends Controller
     {
        switch ($method) {
             case "GET":
-                echo json_encode($this->gateway->getAllUsers());
-                //TODO GET SINGLE USER
+                $IDuser     = filter_input(INPUT_GET, "IDuser", FILTER_VALIDATE_INT);
+                if (!$IDuser) {
+                    echo json_encode($this->gateway->getAllUsers());
+                }
+                echo json_encode($this->gateway->getByID($IDuser));
                 break;
 
             case "PUT":
@@ -34,7 +37,7 @@ class UserController extends Controller
                 $this->InsertQuery((int)$id);
                 break;
             case "DELETE":
-                $znamka     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
+                //$znamka     = $this->clean_string_input(filter_input(INPUT_GET, "znamka", FILTER_UNSAFE_RAW));
                  if (!$id) {
                     $this->NotEnoughParameters();
                     return;
@@ -55,11 +58,15 @@ class UserController extends Controller
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
-
+        $userOldData = $this->gateway->getByID($id);
         // Validate or filter $data
-        $allowed = ["Name", "Surname", "Mail", "Password"];
+        $allowed = ["name", "surname", "mail", "password"];
         $updateData = [];
-
+        if (!password_verify($data['oldPassword'], $userOldData[ 'Password'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Old password is incorrect']);
+            exit;
+}
         foreach ($allowed as $field) {
             if (!empty($data[$field])) {
                 $updateData[$field] = $data[$field];
@@ -72,8 +79,8 @@ class UserController extends Controller
             return;
         }
 
-        if (isset($updateData["Password"])) {
-            $updateData["Password"] = password_hash($updateData["Password"], PASSWORD_DEFAULT);
+        if (isset($updateData["password"])) {
+            $updateData["password"] = password_hash($updateData["password"], PASSWORD_DEFAULT);
         }
 
         if ($this->gateway->updateUser($id, $updateData)) {
@@ -85,13 +92,22 @@ class UserController extends Controller
     }
     private function delete_user(int $id)
     {
-       if ($this->gateway->deleteUser($id)) {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+        $userData = $this->gateway->getByID($id);
+        if (!password_verify($data['Password'], $userData[ 'Password'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Password is incorrect']);
+            exit;
+        }
+        if ($this->gateway->deleteUser($id)) {
             echo json_encode(["message" => "User deleted successfully"]);
         } else {
             http_response_code(500);
             echo json_encode(["error" => "Delete failed"]);
         } 
     }
+
     private function InsertQuery(int $id){
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);

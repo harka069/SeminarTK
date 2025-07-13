@@ -19,5 +19,10 @@ $refresh_token = $JwtController->encode([
 
 echo json_encode([
     "access_token" => $access_token,
-    "refresh_token" => $refresh_token
+    "refresh_token" => $refresh_token,
+    "IDuser" => $user["IDuser"],
+    "Name" => $user["Name"],
+    "Surname" => $user["Surname"],
+    "Email" => $user["Mail"],
+    
 ]);
