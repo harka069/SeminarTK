@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Profile</title>
+    <link rel="stylesheet" href="../CSS/deleteUser.css">
+</head>
+<body>
+    <header>
+        <h1>Avtogvišn</h1>
+    </header>
+
+    <main>
+        <div class="confirm-container">
+            <h2>Delete Profile</h2>
+            <p>Ali res želite izbrisati svoj profil? Teh dejanj ni mogoče razveljaviti.</p>
+
+            <div class="error" id="errorMessage"></div>
+
+            <form id="DeleteProfileForm">
+                <label for="oldPassword">Vnesite geslo za potrditev:</label>
+                <input type="password" name="Password" id="Password" placeholder="Enter current password" required>
+
+                <div class="button-container">
+                    <button type="button" class="cancel-btn" onclick="window.history.back()">Cancel</button>
+                    <button type="submit" class="delete-btn" id="confirmDeleteBtn">Delete Profile</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2025 by Krištof. All rights reserved.
+    </footer>
+
+    <script src="../js/deleteUser.js"></script>
+</body>
+</html>

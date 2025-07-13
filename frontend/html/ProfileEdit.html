@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link rel="stylesheet" href="../CSS/ProfileEdit.css">
+</head>
+<body>
+    <header>
+        <h1>Avtogvišn</h1>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm">
+                <div class="error" id="errorMessage"></div>
+
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" placeholder="Enter your name" >
+
+                <label for="surname">Surname</label>
+                <input type="text" name="surname" id="surname" placeholder="Enter your surname" >
+
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="Enter your email" >
+
+                <label for="password">New Password</label>
+                <input type="password" name="password" id="password" placeholder="Enter new password">
+
+                <label for="oldPassword">Current Password for conformation</label>
+                <input type="password" name="oldPassword" id="oldPassword" placeholder="Enter current password">
+             
+                <div class="button-container">
+                    <button type="submit" name="save" value="save">Save Changes</button>
+                    <button type="submit" name="delete" value="delete" formnovalidate>Want to delete profile?</button>
+                </div>
+            </form>
+             
+        </div>
+       
+    </main>
+
+    <footer>
+        &copy; 2025 by Krištof. All rights reserved.
+    </footer>
+
+    <script src="../js/ProfileEdit.js"></script>
+</body>
+</html>
