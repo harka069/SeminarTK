@@ -7,15 +7,6 @@ switch ($_SERVER["REQUEST_METHOD"])
     case 'POST':
         new_user();
         break;
-    case 'PUT':
-        $user_id = $_GET['userID'] ?? null;
-    if ($user_id && is_numeric($user_id)) {
-        update_user($user_id);
-    } else {
-        http_response_code(400);
-        echo json_encode(["error" => "Invalid or missing user ID."]);
-    }
-        break;
 }
 
 function new_user(){
@@ -37,7 +28,7 @@ function new_user(){
 
     if(($mail_exist->getByMail($data['email']))!= false)
     {
-        http_response_code(403);
+        http_response_code(404);
         echo json_encode(["error" => "User already exists"]);
         exit;
     }
@@ -51,10 +42,12 @@ function new_user(){
     $stmt->bindValue(":email", $data["email"], PDO::PARAM_STR);
     $stmt->execute();
 
-    echo "Thank you for registering.";
+    
+    http_response_code(200);
+    echo json_encode(["message" => "Thank you for registering."]);
     exit;
 }
-
+/*
 function update_user($user_id) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
     $dotenv->load();
@@ -115,4 +108,4 @@ function update_user($user_id) {
         echo json_encode(["error" => "Failed to update user."]);
     }
     exit;
-}
+}*/
