@@ -71,7 +71,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (response.ok) {
                     alert('Profile updated successfully!');
+                    localStorage.setItem('Name', data.name);
+                    localStorage.setItem('Surname', data.surname);
+                    localStorage.setItem('Email', data.mail);
+                   
                     form.password.value = ''; // Clear password input after success
+
                     window.location.href = "../html/RegisteredUserMenu.html";
                 } else {
                     errorDiv.textContent = result.error || 'Failed to update profile.';
