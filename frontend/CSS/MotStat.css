@@ -1,0 +1,175 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #87abcf, #e9ecef);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+header {
+    background-color: #343a40;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+}
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Adds vertical space between all children */
+    max-width: 400px;
+    margin: 2rem auto; /* Center horizontally */
+    padding: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+
+.form-container label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.form-container input,
+.form-container select {
+    width: 100%;
+    padding: 6px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #888;
+}
+
+.range-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.range-group input {
+    width: 100%;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background-color: #343a40;
+    color: white;
+    padding: 10px 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    display: block;
+    text-decoration: none;
+}
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #495057;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 2rem;
+}
+#searchBtn {
+    align-self: center; /* Center the button inside the form container */
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 2rem;
+}
+#searchBtn:hover {
+    background-color: #0056b3;
+}
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.8s linear infinite;
+  margin: 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.content-container {
+    max-width: 600px; 
+    margin: 0 auto;
+    padding: 1rem;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.resultSection{
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+#resultTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    max-width: 400px;
+    margin: 2rem auto; 
+    padding: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#resultTable th, #resultTable td {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+#resultChart {
+    width: 100% !important;
+    border-collapse: collapse;
+    height: auto !important;
+    max-width: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    
+}
