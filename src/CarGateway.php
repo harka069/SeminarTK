@@ -107,10 +107,19 @@ class CarGateway
         $sql = "SELECT DISTINCT m.model_ime
         FROM modeli m 
         JOIN znamke z ON m.znamka_id = z.znamka_id
-        WHERE z.znamka_ime = :brand";
-        
+        WHERE z.znamka_ime = :brand
+        ORDER BY z.znamka_ime ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(":brand", $brand);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN,0);
+    }
+    public function Brands(): array|false
+    {
+        $sql = "SELECT DISTINCT z.znamka_ime
+        FROM znamke z
+        ORDER BY z.znamka_ime ASC";
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN,0);
     }

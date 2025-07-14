@@ -27,7 +27,7 @@ class CarController extends Controller
                     $this->ModelsByBrand($znamka);
                 }
                 else{
-                    $this->NotEnoughParameters();
+                    $this->Brands();
                 }
                 break;
             case "PUT":
@@ -80,6 +80,10 @@ class CarController extends Controller
     private function ModelsByBrand(string $brand)
     {
        echo json_encode($this->gateway->ModelsByBrand($brand));
+    }
+     private function Brands()
+    {
+       echo json_encode($this->gateway->Brands());
     }
     /*
     *NOT needed since we have controller class
