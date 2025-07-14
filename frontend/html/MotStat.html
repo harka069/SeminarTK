@@ -19,59 +19,9 @@
     </div>
 </header>
 <main>
-    <div class="content-container"> 
-    <div class="compare-block"> 
-        <div class="form-container">
-            <label for="make">Make</label>
-                <select id="make">
-                <option disabled selected>Loading...</option>
-                </select>
-
-            <label for="model">Model</label>
-                <select id="model" disabled>
-                    <option disabled selected>Select a model</option>
-                </select>
-
-            <label for="fuelType">Fuel type</label>
-                <select id="fuelType">
-                    <option>Diesel</option>
-                    <option>Petrol</option>
-                    <option>LPG</option>
-                    <option>Electric</option>
-                </select>
-
-            <label>Year of manufacture</label>
-                <div class="range-group">
-                    <input type="number" id="yearFrom" placeholder="2000">
-                    <input type="number" id="yearTo" placeholder="2015">
-                </div>
-
-            <label>Kilometers</label>
-                <div class="range-group">
-                    <input type="number" id="kmFrom" placeholder="50000">
-                    <input type="number" id="kmTo" placeholder="300000">
-                </div>
-            <button id="searchBtn">Search</button>
-            <div id="loader" class="loader" style="display: none;"></div>
-        </div>
-        <!--<div id="resultSection" style="display: none margin-top: 2rem;"> TODO-->
-        <div id="resultSection" style="display:  margin-top: 2rem;">
-            <table id="resultTable" border="1" style="width: 100%; text-align: center;">
-                <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem;">
-                    Results:
-                </caption>
-                <thead>
-                <tr>
-                    <th>Total Cars</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-
-            <canvas id="resultChart" width="400" height="400" style="margin-top: 2rem;"></canvas>
-        </div>
+    <div class="compare-container">
+        <div class="compare-block" data-block="1"></div>
+        <div class="compare-block" data-block="2"></div>
     </div>
         
 </main>

@@ -21,158 +21,338 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     });
 });
-document.addEventListener('DOMContentLoaded', async () => {
-    const makeSelect = document.getElementById('make');
-    const modelSelect = document.getElementById('model');
 
-    // Load car brands on page load
-    try {
-        const response = await fetch('http://localhost/avtogvisn/api/cars', {
-            method: 'GET',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + accessToken,    
-            }
-        });
 
-        if (!response.ok) throw new Error('Failed to fetch brands.');
-        const brands = await response.json();
+document.addEventListener('DOMContentLoaded', () => {
+  const blocks = document.querySelectorAll('.compare-block');
+  
+  blocks.forEach((block, index) => {
+    block.innerHTML = getCompareBlockHTML(index + 1);
+  });
 
-        makeSelect.innerHTML = '<option disabled selected>Select a make</option>';
-        brands.forEach(brand => {
-            const option = document.createElement('option');
-            option.value = brand;
-            option.textContent = brand;
-            makeSelect.appendChild(option);
-        });
-    } catch (err) {
-        console.error(err);
-        makeSelect.innerHTML = '<option disabled>Error loading brands</option>';
-    }
-
-    // When user selects a brand, fetch models
-    makeSelect.addEventListener('change', async () => {
-        const selectedBrand = makeSelect.value;
-
-        modelSelect.disabled = true;
-        modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
-
-        try {
-            const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
-                method: 'GET',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken,    
-                 }
-            });
-
-            if (!response.ok) throw new Error('Failed to fetch models.');
-            const models = await response.json(); 
-
-            modelSelect.innerHTML = '<option disabled selected>Select a model</option>';
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelSelect.appendChild(option);
-            });
-            modelSelect.disabled = false;
-        } catch (err) {
-            console.error(err);
-            modelSelect.innerHTML = '<option disabled>Error loading models</option>';
-        }
+  Promise.all(
+    Array.from(blocks).map((_, i) => populateMakeModelDropdowns(i + 1))
+  ).then(() => {
+    console.log('All dropdowns populated');
+    
+    // Now attach search button event listeners
+    blocks.forEach((block, index) => {
+      const blockId = index + 1;
+      setupSearchButton(blockId);
     });
+  });
 });
 
-const loader = document.getElementById('loader');
 
-document.getElementById('searchBtn').addEventListener('click', async () => {
-    const make = document.getElementById('make').value;
-    const model = document.getElementById('model').value;
-    const fuelType = document.getElementById('fuelType').value;
-    const yearFrom = document.getElementById('yearFrom').value;
-    const yearTo = document.getElementById('yearTo').value;
-    const kmFrom = document.getElementById('kmFrom').value;
-    const kmTo = document.getElementById('kmTo').value;
-    const loader = document.getElementById('loader');
+async function fetchAndRenderStats(blockId) {
+  // Helper to get element by id with block suffix
+  const prefix = (id) => document.getElementById(`${id}-${blockId}`);
 
-    const params = new URLSearchParams();
+  // Get all inputs and loader for this block
+  const make = prefix('make').value;
+  const model = prefix('model').value;
+  const fuelType = prefix('fuelType').value;
+  const yearFrom = prefix('yearFrom').value;
+  const yearTo = prefix('yearTo').value;
+  const kmFrom = prefix('kmFrom').value;
+  const kmTo = prefix('kmTo').value;
+  const loader = prefix('loader');
+  const resultSection = prefix('resultSection');
+  const tbody = prefix('resultBody');
+  const canvas = prefix('resultChart');
 
-    if (make) params.append('znamka', make);
-    if (model) params.append('model', model);
-    if (fuelType) params.append('fuel', "P"); // Consider mapping actual value
-    if (yearFrom) params.append('start_date', `${yearFrom}-01-01`);
-    if (yearTo) params.append('end_date', `${yearTo}-12-31`);
-    if (kmFrom) params.append('min_km', kmFrom);
-    if (kmTo) params.append('max_km', kmTo);
+  // Prepare URL parameters
+  const params = new URLSearchParams();
 
-    let data;
+  if (make) params.append('znamka', make);
+  if (model) params.append('model', model);
+
+  if (fuelType) {
+    const fuelMap = { Diesel: 'D', Petrol: 'P', LPG: 'LPG', Electric: '-' };
+    params.append('fuel', fuelMap[fuelType] || fuelType);
+  }
+
+  if (yearFrom) params.append('start_date', `${yearFrom}-01-01`);
+  if (yearTo) params.append('end_date', `${yearTo}-12-31`);
+  if (kmFrom) params.append('min_km', kmFrom);
+  if (kmTo) params.append('max_km', kmTo);
+
+  let data;
+
+  try {
+    loader.style.display = 'block'; // show loader
+
+    const response = await fetch(`http://localhost/avtogvisn/api/cars?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + accessToken
+      }
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    data = await response.json();
+
+    console.log(`Block ${blockId} data:`, data);
+  } catch (err) {
+    alert(`Block ${blockId} - Failed to fetch data: ${err.message}`);
+    loader.style.display = 'none'; // hide loader if error
+    return;
+  } finally {
+    loader.style.display = 'none'; // hide loader after fetch
+  }
+
+  if (data.length === 0) {
+    alert(`Block ${blockId} - No data found for given filters.`);
+    resultSection.style.display = 'none';
+    return;
+  }
+
+  const stats = data[0];
+
+  // Show result section
+  resultSection.style.display = 'block';
+  //document.getElementById(`resultSection-${blockId}`).style.display = 'block';
+  // Populate table body
+  tbody.innerHTML = `
+    <tr>
+      <td>${stats.total_count}</td>
+      <td>${stats.brezhiben_count}</td>
+      <td>${stats.ne_brezhiben_count}</td>
+    </tr>
+  `;
+
+  // Render pie chart, destroy previous if exists
+  if (window[`pieChart${blockId}`]) {
+    window[`pieChart${blockId}`].destroy();
+  }
+
+  const ctx = canvas.getContext('2d');
+  window[`pieChart${blockId}`] = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Passed', 'Failed'],
+      datasets: [{
+        data: [stats.brezhiben_count, stats.ne_brezhiben_count],
+        backgroundColor: ['#28a745', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true  }
+      }
+    }
+  });
+}
+
+
+async function populateMakeModelDropdowns(blockId) {
+  const makeSelect = document.getElementById(`make-${blockId}`);
+  const modelSelect = document.getElementById(`model-${blockId}`);
+
+  try {
+    const response = await fetch('http://localhost/avtogvisn/api/cars', {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + accessToken,    
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch brands.');
+
+    const brands = await response.json();
+
+    makeSelect.innerHTML = '<option disabled selected>Select a make</option>';
+    brands.forEach(brand => {
+      const option = document.createElement('option');
+      option.value = brand;
+      option.textContent = brand;
+      makeSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error(err);
+    makeSelect.innerHTML = '<option disabled>Error loading brands</option>';
+  }
+
+  makeSelect.addEventListener('change', async () => {
+    const selectedBrand = makeSelect.value;
+
+    modelSelect.disabled = true;
+    modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
 
     try {
-        loader.style.display = 'block'; 
-
-        const response = await fetch(`http://localhost/avtogvisn/api/cars?${params.toString()}`, {
-            method: 'GET',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + accessToken,    
-            }
-        });
-
-        data = await response.json();
-        console.log('Filtered cars:', data);
-    } catch (err) {
-        console.error('Failed to fetch cars:', err);
-        return;
-    } finally {
-        loader.style.display = 'none'; 
-    }
-
-    if (data.length > 0) {
-        const stats = data[0];
-
-        // Show table
-        document.getElementById('resultSection').style.display = 'block';
-
-        // Populate table
-        const tbody = document.querySelector('#resultTable tbody');
-        if (tbody) {
-            tbody.innerHTML = `
-              <tr>
-                <td>${stats.total_count}</td>
-                <td>${stats.brezhiben_count}</td>
-                <td>${stats.ne_brezhiben_count}</td>
-              </tr>
-            `;
+      const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken,    
         }
+      });
+      if (!response.ok) throw new Error('Failed to fetch models.');
 
-        // Draw chart
-        const ctx = document.getElementById('resultChart').getContext('2d');
-        if (window.pieChart) window.pieChart.destroy(); // Remove old chart if needed
+      const models = await response.json();
 
-        window.pieChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Passed', 'Failed'],
-                datasets: [{
-                    data: [stats.brezhiben_count, stats.ne_brezhiben_count],
-                    backgroundColor: ['#28a745', '#dc3545']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Technical Check Results'
-                    }
-                }
-            }
-        });
-    } else {
-        alert('No data found for given filters.');
+      modelSelect.innerHTML = '<option disabled selected>Select a model</option>';
+      models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        modelSelect.appendChild(option);
+      });
+      modelSelect.disabled = false;
+    } catch (err) {
+      console.error(err);
+      modelSelect.innerHTML = '<option disabled>Error loading models</option>';
     }
-});
+  });
+}
+
+function getCompareBlockHTML(id) {
+  return `
+
+    <div class="form-container">
+      <label for="make-${id}">Make</label>
+      <select id="make-${id}">
+        <option disabled selected>Loading...</option>
+      </select>
+
+      <label for="model-${id}">Model</label>
+      <select id="model-${id}" disabled>
+        <option disabled selected>Select a model</option>
+      </select>
+
+      <label for="fuelType-${id}">Fuel type</label>
+      <select id="fuelType-${id}">
+        <option>Diesel</option>
+        <option>Petrol</option>
+        <option>LPG</option>
+        <option>Electric</option>
+      </select>
+
+      <label for="yearFrom-${id}">Year of manufacture (from)</label>
+      <input type="number" id="yearFrom-${id}" placeholder="2000">
+
+      <label for="yearTo-${id}">Year of manufacture (to)</label>
+      <input type="number" id="yearTo-${id}" placeholder="2015">
+
+      <label for="kmFrom-${id}">Kilometers (from)</label>
+      <input type="number" id="kmFrom-${id}" placeholder="50000">
+
+      <label for="kmTo-${id}">Kilometers (to)</label>
+      <input type="number" id="kmTo-${id}" placeholder="300000">
+
+      <button id="searchBtn-${id}" class="searchBtn">Search</button>
+
+      <div id="loader-${id}" class="loader" style="display: none;"></div>
+    </div>
+
+    
+   <!--<div id="resultSection-${id}" class="resultSection"  display: none;">-->
+        <div id="resultSection-${id}"  class="resultSection"display: block;">
+      <table id="resultTable-${id}" class="resultTable" border="1" >
+        <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem;">
+          Results:
+        </caption>
+        <thead>
+          <tr>
+            <th>Total Cars</th>
+            <th>Passed</th>
+            <th>Failed</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody-${id}"</tbody>
+      </table>
+
+      <canvas id="resultChart-${id}" class="resultChart" width="400" height="400" style="margin-top: 2rem;"></canvas>
+    </div>
+    
+  
+  `;
+}
+
+
+async function populateMakeModelDropdowns(blockId) {
+  const makeSelect = document.getElementById(`make-${blockId}`);
+  const modelSelect = document.getElementById(`model-${blockId}`);
+
+  if (!makeSelect || !modelSelect) {
+    console.error(`Select elements for block ${blockId} not found`);
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost/avtogvisn/api/cars', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + accessToken,
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch brands.');
+    const brands = await response.json();
+
+    makeSelect.innerHTML = '<option disabled selected>Select a make</option>';
+    brands.forEach(brand => {
+      const option = document.createElement('option');
+      option.value = brand;
+      option.textContent = brand;
+      makeSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error(err);
+    makeSelect.innerHTML = '<option disabled>Error loading brands</option>';
+  }
+
+  makeSelect.addEventListener('change', async () => {
+    const selectedBrand = makeSelect.value;
+    modelSelect.disabled = true;
+    modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
+
+    try {
+      const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken,
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch models.');
+      const models = await response.json();
+
+      modelSelect.innerHTML = '<option disabled selected>Select a model</option>';
+      models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        modelSelect.appendChild(option);
+      });
+      modelSelect.disabled = false;
+    } catch (err) {
+      console.error(err);
+      modelSelect.innerHTML = '<option disabled>Error loading models</option>';
+    }
+  });
+}
+function setupSearchButton(blockId) {
+  const btn = document.getElementById(`searchBtn-${blockId}`);
+  if (!btn) return;
+  
+  btn.addEventListener('click', async () => {
+    // Optionally, show loader here
+    const loader = document.getElementById(`loader-${blockId}`);
+    if (loader) loader.style.display = 'block';
+
+    try {
+      await fetchAndRenderStats(blockId);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    } finally {
+      if (loader) loader.style.display = 'none';
+    }
+  });
+}
