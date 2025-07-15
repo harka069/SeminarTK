@@ -1,11 +1,24 @@
-body {
+html,body{
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(to right, #87abcf, #e9ecef);
-    display: flex;
+    /*display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100vh;*/
+    height: 100%;
+    padding: 0;
+    box-sizing: border-box;
 }
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+}
+
 header {
     background-color: #343a40;
     color: white;
@@ -146,6 +159,7 @@ header {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     display: none;
+   
 }
 .resultTable {
     width: 100%;
@@ -175,8 +189,8 @@ header {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     
 }
-footer {
-    background-color: #f1f1f1;
+.footer {
+    background-color:#f1f1f1;
     text-align: center;
     padding: 1rem;
 }
