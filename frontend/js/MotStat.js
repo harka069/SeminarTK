@@ -228,6 +228,10 @@ async function populateMakeModelDropdowns(blockId) {
 		console.error(err);
 		makeSelect.innerHTML = '<option disabled>Error loading brands</option>';
 	}
+	makeSelect.addEventListener('change', () => {
+		const selectedBrand = makeSelect.value;
+	loadModelsForBrand(blockId,selectedBrand);
+});
 	/*
   	makeSelect.addEventListener('change', async () => {
 		const selectedBrand = makeSelect.value;
@@ -261,13 +265,13 @@ async function populateMakeModelDropdowns(blockId) {
   });*/
 }
 //not used
-async function loadModelsForBrand(blockId) {
-	const makeSelect = document.getElementById(`make-${blockId}`);
+async function loadModelsForBrand(blockId,selectedBrand) {
+	const modelSelect = document.getElementById(`model-${blockId}`);
 	modelSelect.disabled = true;
 	modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
 
 	try {
-		const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(brand)}`, {
+		const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -291,12 +295,9 @@ async function loadModelsForBrand(blockId) {
 		modelSelect.innerHTML = '<option disabled>Error loading models</option>';
 	}
 }
-/*
+
 // Event listener uses the separate function
-makeSelect.addEventListener('change', () => {
-	const selectedBrand = makeSelect.value;
-	loadModelsForBrand(selectedBrand);
-});*/
+
 
 //listener on search button
 function setupSearchButton(blockId) {
