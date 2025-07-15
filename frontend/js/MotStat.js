@@ -6,6 +6,7 @@ const Email = localStorage.getItem('Email');
 
 document.getElementById('userDropdown').textContent = Name + ' ' +Surname +' ▼';
 
+let savedQueries = [];
 document.addEventListener('DOMContentLoaded', () => {
   //logic for logout
   const logoutLink = document.getElementById('logoutLink');
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('You have been logged out.');
       window.location.href = 'login.html';
   });
-  
+	fetchSavedQueries();
   //logic for querry
   const blocks = document.querySelectorAll('.compare-block');
   blocks.forEach((block, index) => {
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupsaveQuery(blockId);
       });
     });
-  
+	
 });
 
 //real querry
@@ -227,7 +228,7 @@ async function populateMakeModelDropdowns(blockId) {
 		console.error(err);
 		makeSelect.innerHTML = '<option disabled>Error loading brands</option>';
 	}
-
+	/*
   	makeSelect.addEventListener('change', async () => {
 		const selectedBrand = makeSelect.value;
 		modelSelect.disabled = true;
@@ -257,8 +258,46 @@ async function populateMakeModelDropdowns(blockId) {
 			console.error(err);
 			modelSelect.innerHTML = '<option disabled>Error loading models</option>';
 		}
-  });
+  });*/
 }
+//not used
+async function loadModelsForBrand(blockId) {
+	const makeSelect = document.getElementById(`make-${blockId}`);
+	modelSelect.disabled = true;
+	modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
+
+	try {
+		const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(brand)}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': 'Bearer ' + accessToken,
+			}
+		});
+
+		if (!response.ok) throw new Error('Failed to fetch models.');
+		const models = await response.json();
+
+		modelSelect.innerHTML = '<option disabled selected>Select a model</option>';
+		models.forEach(model => {
+			const option = document.createElement('option');
+			option.value = model;
+			option.textContent = model;
+			modelSelect.appendChild(option);
+		});
+		modelSelect.disabled = false;
+	} catch (err) {
+		console.error(err);
+		modelSelect.innerHTML = '<option disabled>Error loading models</option>';
+	}
+}
+/*
+// Event listener uses the separate function
+makeSelect.addEventListener('change', () => {
+	const selectedBrand = makeSelect.value;
+	loadModelsForBrand(selectedBrand);
+});*/
+
 //listener on search button
 function setupSearchButton(blockId) {
 	const btn = document.getElementById(`searchBtn-${blockId}`);
@@ -328,4 +367,110 @@ function setupsaveQuery(blockId){
       console.log("ne dela");
     }
 });
+}
+
+
+async function fetchSavedQueries() {
+     try {
+        const response = await fetch('/avtogvisn/api/users/favourite', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+				'Authorization': 'Bearer ' + accessToken,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+       savedQueries = await response.json();
+
+        const tbody = document.getElementById('queriesBody');
+        tbody.innerHTML = ''; // Clear old entries
+
+        savedQueries.forEach(query => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${query.znamka}</td>
+                <td>${query.model}</td>
+                <td>${query.fuel}</td>
+                <td>${query.start_date}</td>
+                <td>${query.end_date}</td>
+                <td>${query.min_km}</td>
+                <td>${query.max_km}</td>
+                <td>
+                    <button class="query-action-btn btn-delete" data-id="${query.query_id}">🗑</button>
+                    <button class="query-action-btn btn-search1" data-id="${query.query_id}">1️⃣</button>
+                    <button class="query-action-btn btn-search2" data-id="${query.query_id}">2️⃣</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        addEventListeners();
+    } catch (error) {
+        console.error('Failed to fetch saved queries:', error);
+    }
+}
+
+
+function addEventListeners() {
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async() => {
+            const id = btn.dataset.id;
+			try {
+				const response = await fetch(`/avtogvisn/api/users/favourite?QueryID=${id}`, {
+					method: 'DELETE',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + accessToken,
+					}
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				fetchSavedQueries();
+			}catch (err) {
+				console.error(err);
+			
+			}
+        });
+    });
+
+    document.querySelectorAll('.btn-search1').forEach(btn => {
+    btn.addEventListener('click', () => applySearch(btn.dataset.id, 1));
+});
+document.querySelectorAll('.btn-search2').forEach(btn => {
+    btn.addEventListener('click', () => applySearch(btn.dataset.id, 2));
+});
+}
+
+async function applySearch(queryId, targetBlock) {
+    const query = savedQueries.find(q => q.query_id == queryId);
+    if (!query) {
+        console.error("Query not found:", queryId);
+        return;
+    }
+
+	const fuelMap = {
+		'D': 'Diesel',
+		'P': 'Petrol',
+		'LPG': 'LPG',
+		'E': 'Electric'
+	};
+
+
+	const fuelValue = fuelMap[query.fuel] || ''; 
+	document.getElementById(`make-${targetBlock}`).value = query.znamka;
+	document.getElementById(`make-${targetBlock}`).dispatchEvent(new Event('change'));
+
+    document.getElementById(`model-${targetBlock}`).value = query.model;
+	document.getElementById(`fuelType-${targetBlock}`).value = fuelValue;
+	document.getElementById(`yearFrom-${targetBlock}`).value = query.start_date.slice(0, 4);
+	document.getElementById(`yearTo-${targetBlock}`).value = query.end_date.slice(0, 4);
+	document.getElementById(`kmFrom-${targetBlock}`).value = query.min_km;
+	document.getElementById(`kmTo-${targetBlock}`).value = query.max_km;
+    
 }
