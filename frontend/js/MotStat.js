@@ -9,28 +9,29 @@ document.getElementById('userDropdown').textContent = Name + ' ' +Surname +' ▼
 let savedQueries = [];
 document.addEventListener('DOMContentLoaded', () => {
   //logic for logout
-  const logoutLink = document.getElementById('logoutLink');
-  logoutLink.addEventListener('click', (e) => {
-      e.preventDefault();  
-      alert('You have been logged out.');
-      window.location.href = 'login.html';
-  });
+	const logoutLink = document.getElementById('logoutLink');
+	logoutLink.addEventListener('click', (e) => {
+		e.preventDefault();  
+		alert('You have been logged out.');
+		window.location.href = 'login.html';
+	});
+	
 	fetchSavedQueries();
-  //logic for querry
-  const blocks = document.querySelectorAll('.compare-block');
-  blocks.forEach((block, index) => {
-    block.innerHTML = getCompareBlockHTML(index + 1);
-  });
-  Promise.all(
-    Array.from(blocks).map((_, i) => populateMakeModelDropdowns(i + 1))
-  ).then(() => {
-    console.log('All dropdowns populated');
-      blocks.forEach((block, index) => {
-        const blockId = index + 1;
-        setupSearchButton(blockId);
-        setupsaveQuery(blockId);
-      });
-    });
+	//logic for querry
+	const blocks = document.querySelectorAll('.compare-block');
+	blocks.forEach((block, index) => {
+		block.innerHTML = getCompareBlockHTML(index + 1);
+	});
+	Promise.all(
+		Array.from(blocks).map((_, i) => populateMakeModelDropdowns(i + 1))
+	).then(() => {
+		console.log('All dropdowns populated');
+		blocks.forEach((block, index) => {
+			const blockId = index + 1;
+			setupSearchButton(blockId);
+			setupsaveQuery(blockId);
+		});
+		});
 	
 });
 
@@ -264,7 +265,7 @@ async function populateMakeModelDropdowns(blockId) {
 		}
   });*/
 }
-//not used
+
 async function loadModelsForBrand(blockId,selectedBrand) {
 	const modelSelect = document.getElementById(`model-${blockId}`);
 	modelSelect.disabled = true;
@@ -295,8 +296,6 @@ async function loadModelsForBrand(blockId,selectedBrand) {
 		modelSelect.innerHTML = '<option disabled>Error loading models</option>';
 	}
 }
-
-// Event listener uses the separate function
 
 
 //listener on search button
@@ -370,7 +369,6 @@ function setupsaveQuery(blockId){
 });
 }
 
-
 async function fetchSavedQueries() {
      try {
         const response = await fetch('/avtogvisn/api/users/favourite', {
@@ -415,7 +413,6 @@ async function fetchSavedQueries() {
     }
 }
 
-
 function addEventListeners() {
     document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', async() => {
@@ -448,8 +445,12 @@ document.querySelectorAll('.btn-search2').forEach(btn => {
 });
 }
 
-async function applySearch(queryId, targetBlock) {
+async function applySearch(queryId, blockId) {
+	const makeSelect = document.getElementById(`make-${blockId}`);
+  //	const modelSelect = document.getElementById(`model-${blockId}`);	
+  	
     const query = savedQueries.find(q => q.query_id == queryId);
+	makeSelect.value = query.znamka;
     if (!query) {
         console.error("Query not found:", queryId);
         return;
@@ -464,14 +465,14 @@ async function applySearch(queryId, targetBlock) {
 
 
 	const fuelValue = fuelMap[query.fuel] || ''; 
-	document.getElementById(`make-${targetBlock}`).value = query.znamka;
-	document.getElementById(`make-${targetBlock}`).dispatchEvent(new Event('change'));
-
-    document.getElementById(`model-${targetBlock}`).value = query.model;
-	document.getElementById(`fuelType-${targetBlock}`).value = fuelValue;
-	document.getElementById(`yearFrom-${targetBlock}`).value = query.start_date.slice(0, 4);
-	document.getElementById(`yearTo-${targetBlock}`).value = query.end_date.slice(0, 4);
-	document.getElementById(`kmFrom-${targetBlock}`).value = query.min_km;
-	document.getElementById(`kmTo-${targetBlock}`).value = query.max_km;
+	document.getElementById(`make-${blockId}`).value = query.znamka;
+	//document.getElementById(`make-${targetBlock}`).dispatchEvent(new Event('change'));
+	await loadModelsForBrand(blockId,query.znamka, );
+    document.getElementById(`model-${blockId}`).value = query.model;
+	document.getElementById(`fuelType-${blockId}`).value = fuelValue;
+	document.getElementById(`yearFrom-${blockId}`).value = query.start_date.slice(0, 4);
+	document.getElementById(`yearTo-${blockId}`).value = query.end_date.slice(0, 4);
+	document.getElementById(`kmFrom-${blockId}`).value = query.min_km;
+	document.getElementById(`kmTo-${blockId}`).value = query.max_km;
     
 }
