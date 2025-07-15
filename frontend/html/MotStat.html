@@ -7,28 +7,29 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-<header>
-    <h1>Avtogvišn</h1>
-    <div class="dropdown">
-        <button class="dropbtn" id="userDropdown">Username ▼</button>
-        <div class="dropdown-content">
-            <a href="ProfileEdit.html">Profile settings</a>
-            <a href="#" id="logoutLink">Logout</a>
+<div class="page-wrapper">
+    <header>
+        <h1>Avtogvišn</h1>
+        <div class="dropdown">
+            <button class="dropbtn" id="userDropdown">Username ▼</button>
+            <div class="dropdown-content">
+                <a href="ProfileEdit.html">Profile settings</a>
+                <a href="#" id="logoutLink">Logout</a>
+            </div>
         </div>
-    </div>
-</header>
-<main>
-    <div class="compare-container">
-        <div class="compare-block" data-block="1"></div>
-        <div class="compare-block" data-block="2"></div>
-    </div>
-    <button type="button" class="button onclick="window.history.back()">Cancel</button>   
-</main>
+    </header>
+    <main class="content">
+        <div class="compare-container">
+            <div class="compare-block" data-block="1"></div>
+            <div class="compare-block" data-block="2"></div>
+        </div>
+        <button type="button" class="button" onclick="window.history.back()">Cancel</button>   
+    </main>
 
-<footer>
-    &copy; 2025 by Krištof. All rights reserved.
-</footer>
+    <footer class="footer">
+        &copy; 2025 by Krištof. All rights reserved.
+    </footer>
+</div>
 </body>
 
 <script
