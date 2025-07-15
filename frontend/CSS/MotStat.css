@@ -194,3 +194,52 @@ header {
     text-align: center;
     padding: 1rem;
 }
+
+.saved-queries-section {
+    margin: 2rem auto;
+    max-width: 1000px;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.saved-queries-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.saved-queries-table th,
+.saved-queries-table td {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.query-action-btn {
+    margin: 0 2px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-search1 {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-search2 {
+    background-color: #28a745;
+    color: white;
+}
+
+.query-action-btn:hover {
+    opacity: 0.85;
+}
