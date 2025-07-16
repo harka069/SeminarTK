@@ -1,3 +1,4 @@
+import { fetchWithAuth } from './fetchWithAuth.js';
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('loginForm');
     const errorDiv = document.getElementById('errorMessage');
@@ -15,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         try {
-            const response = await fetch("/avtogvisn/register.php", {
+            const response = await fetchWithAuth("/avtogvisn/register.php", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

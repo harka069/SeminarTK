@@ -1,3 +1,4 @@
+import { fetchWithAuth } from './fetchWithAuth.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
 
             try {
-                const response = await fetch('/avtogvisn/api/users', {
+                const response = await fetchWithAuth('/avtogvisn/api/users', {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + token,

@@ -1,3 +1,5 @@
+import { fetchWithAuth } from './fetchWithAuth.js';
+
 const accessToken = localStorage.getItem('access_token');
 const IDuser= localStorage.getItem('IDuser');
 const Name = localStorage.getItem('Name');
@@ -71,7 +73,7 @@ async function fetchAndRenderStats(blockId) {
 
 	try {
 		loader.style.display = 'block'; 
-		const response = await fetch(`http://localhost/avtogvisn/api/cars?${params.toString()}`, {
+		const response = await fetchWithAuth(`http://localhost/avtogvisn/api/cars?${params.toString()}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -207,11 +209,10 @@ async function populateMakeModelDropdowns(blockId) {
 	}
 
 	try {
-		const response = await fetch('http://localhost/avtogvisn/api/cars', {
+		const response = await fetchWithAuth('http://localhost/avtogvisn/api/cars', {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': 'Bearer ' + accessToken,
 		}
 		});
 
@@ -272,11 +273,11 @@ async function loadModelsForBrand(blockId,selectedBrand) {
 	modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
 
 	try {
-		const response = await fetch(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
+		const response = await fetchWithAuth(`http://localhost/avtogvisn/api/cars?znamka=${encodeURIComponent(selectedBrand)}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer ' + accessToken,
+
 			}
 		});
 
@@ -346,7 +347,7 @@ function setupsaveQuery(blockId){
       };
 
     try {
-        const response = await fetch('/avtogvisn/api/users/saveQuery', {
+        const response = await fetchWithAuth('/avtogvisn/api/users/saveQuery', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
@@ -371,7 +372,7 @@ function setupsaveQuery(blockId){
 
 async function fetchSavedQueries() {
      try {
-        const response = await fetch('/avtogvisn/api/users/favourite', {
+        const response = await fetchWithAuth('/avtogvisn/api/users/favourite', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -418,7 +419,7 @@ function addEventListeners() {
         btn.addEventListener('click', async() => {
             const id = btn.dataset.id;
 			try {
-				const response = await fetch(`/avtogvisn/api/users/favourite?QueryID=${id}`, {
+				const response = await fetchWithAuth(`/avtogvisn/api/users/favourite?QueryID=${id}`, {
 					method: 'DELETE',
 					headers: {
 						'Content-Type': 'application/json',

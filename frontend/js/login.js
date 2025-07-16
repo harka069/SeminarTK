@@ -1,4 +1,5 @@
- const form = document.getElementById('loginForm');
+import { fetchWithAuth } from './fetchWithAuth.js';
+const form = document.getElementById('loginForm');
         const errorDiv = document.getElementById('errorMessage');
 
         form.addEventListener('submit', async (e) => {
@@ -10,7 +11,7 @@
                 password: formData.get('password')
             };
 
-            const response = await fetch("/avtogvisn/api/login.php", {
+            const response = await fetchWithAuth("/avtogvisn/api/login.php", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

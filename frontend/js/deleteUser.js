@@ -1,3 +1,5 @@
+import { fetchWithAuth } from './fetchWithAuth.js'; 
+
 const IDuser = localStorage.getItem('IDuser');
 const token = localStorage.getItem('access_token');
 
@@ -23,7 +25,7 @@ form.addEventListener('submit', async (e) => {
     const data = { Password };
 
     try {
-        const response = await fetch('/avtogvisn/api/users/', {
+        const response = await fetchWithAuth('/avtogvisn/api/users/', {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + token,
