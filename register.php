@@ -28,7 +28,7 @@ function new_user(){
 
     if(($mail_exist->getByMail($data['email']))!= false)
     {
-        http_response_code(404);
+        http_response_code(403);
         echo json_encode(["error" => "User already exists"]);
         exit;
     }

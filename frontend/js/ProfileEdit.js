@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = {
                 name: form.name.value.trim(),
                 surname: form.surname.value.trim(),
-                mail: form.email.value.trim(),
+                email: form.email.value.trim(),
                 password: form.password.value, 
                 oldPassword: form.oldPassword.value
             };
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert('Profile updated successfully!');
                     localStorage.setItem('Name', data.name);
                     localStorage.setItem('Surname', data.surname);
-                    localStorage.setItem('Email', data.mail);
+                    localStorage.setItem('Email', data.email);
                    
                     form.password.value = ''; // Clear password input after success
 

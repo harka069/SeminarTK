@@ -108,7 +108,7 @@ class CarGateway
         FROM modeli m 
         JOIN znamke z ON m.znamka_id = z.znamka_id
         WHERE z.znamka_ime = :brand
-        ORDER BY z.znamka_ime ASC";
+        ORDER BY m.model_ime ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(":brand", $brand);
         $stmt->execute();
@@ -123,4 +123,48 @@ class CarGateway
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN,0);
     }
+   
+    public function CarStatYear(string $znamka, string $model, int $startYear, int $endYear, string $fuel): array 
+    {
+        $results = [];
+
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $startDate = "$year-01-01";
+            $endDate = "$year-12-31";
+
+            $sql = "
+                SELECT
+                    :year AS year,
+                    COUNT(*) AS total_count,
+                    COUNT(CASE WHEN r.TEHNICNI_PREGLED_STATUS IN ('brezhiben', 'pogojno brezhiben') THEN 1 END) AS brezhiben_count,
+                    COUNT(CASE WHEN r.TEHNICNI_PREGLED_STATUS IN ('ni brezhiben', 'ni brezhiben - kriticna napaka') THEN 1 END) AS ne_brezhiben_count
+                FROM avtomobili a
+                JOIN znamke z ON a.znamka_id = z.znamka_id
+                JOIN modeli m ON a.modeli_id = m.model_id
+                JOIN gorivo g ON a.gorivo_id = g.gorivo_id
+                JOIN rezultatiTP r ON a.VIN = r.VIN
+                WHERE z.znamka_ime = :brand
+                AND m.model_ime = :model
+                AND a.datum_prve_registracije BETWEEN :start_date AND :end_date
+                AND g.gorivo_tip = :fuel
+            ";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(":year", $year, PDO::PARAM_INT);
+            $stmt->bindValue(":brand", $znamka);
+            $stmt->bindValue(":model", $model);
+            $stmt->bindValue(":start_date", $startDate);
+            $stmt->bindValue(":end_date", $endDate);
+            $stmt->bindValue(":fuel", $fuel);
+            $stmt->execute();
+
+            $yearData = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($yearData) {
+                $results[] = $yearData;
+            }
+        }
+
+        return $results;
+    }
+    
 }

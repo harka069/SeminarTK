@@ -21,6 +21,8 @@ class CarController extends Controller
 
                 if($znamka && $model && $start_date && $end_date && $max_km && $fuel) {
                     $this->CarByQuerry($start_date, $end_date,$znamka, $model,$max_km, $min_km,$fuel);
+                }elseif($znamka && $model && $start_date  && $end_date && $fuel){
+                    $this->CarStatYear($znamka,$model,$start_date,$end_date,$fuel);
                 }elseif($VIN){
                     $this->CarByVIN($VIN);
                 }elseif($znamka){
@@ -31,10 +33,6 @@ class CarController extends Controller
                 }
                 break;
             case "PUT":
-              
-            break;
-            case "DELETE":
-            
             break;
             default:
                 $this->methodNotAllowed("GET, PUT");
@@ -81,25 +79,14 @@ class CarController extends Controller
     {
        echo json_encode($this->gateway->ModelsByBrand($brand));
     }
-     private function Brands()
+    private function Brands()
     {
        echo json_encode($this->gateway->Brands());
     }
-    /*
-    *NOT needed since we have controller class
-    private function NotEnoughParameters(): void
+    private function CarStatYear($znamka,$model,$start_date,$end_date,$fuel)    
     {
-        http_response_code(400); // Bad Request
-        echo json_encode(["error" => "Not enough parameters"]);
+        echo json_encode($this->gateway->CarStatYear($znamka,$model,$start_date,$end_date,$fuel));
     }
-    private function clean_string_input(string|null $input): string|null 
-    {
-    return $input !== null ? strip_tags($input) : null;
-    }
-    public function methodNotAllowed(string $allowed_method): void
-    {
-        http_response_code(405);
-        header("Allow: $allowed_method");
-    }*/
+  
 
 }

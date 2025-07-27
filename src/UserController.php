@@ -10,11 +10,18 @@ class UserController extends Controller
     {
        switch ($method) {
             case "GET":
-                $IDuser     = filter_input(INPUT_GET, "IDuser", FILTER_VALIDATE_INT);
-                if (!$IDuser) {
+                if (empty($_GET)) {
                     echo json_encode($this->gateway->getAllUsers());
+                break;
                 }
-                echo json_encode($this->gateway->getByID($IDuser));
+                $IDuser = filter_input(INPUT_GET, "IDuser", FILTER_VALIDATE_INT);
+                $response = json_encode($this->gateway->getByID($IDuser));
+                if( $response === "false"){
+                    http_response_code(404);
+                    echo json_encode(["message" => "User not found"]);
+                }else{
+                   echo json_encode($this->gateway->getByID($IDuser));
+                }                
                 break;
 
             case "PUT":
@@ -62,11 +69,16 @@ class UserController extends Controller
         // Validate or filter $data
         $allowed = ["name", "surname", "mail", "password"];
         $updateData = [];
+        if(empty($data['oldPassword'])){
+            http_response_code(401);
+            echo json_encode(['error' => 'Old password is missing']);
+            return;
+        }
         if (!password_verify($data['oldPassword'], $userOldData[ 'Password'])) {
             http_response_code(401);
             echo json_encode(['error' => 'Old password is incorrect']);
             exit;
-}
+        }
         foreach ($allowed as $field) {
             if (!empty($data[$field])) {
                 $updateData[$field] = $data[$field];
@@ -98,13 +110,16 @@ class UserController extends Controller
         if (!password_verify($data['Password'], $userData[ 'Password'])) {
             http_response_code(401);
             echo json_encode(['error' => 'Password is incorrect']);
-            exit;
+            return;
         }
         if ($this->gateway->deleteUser($id)) {
+            http_response_code(200);
             echo json_encode(["message" => "User deleted successfully"]);
+            return;
         } else {
             http_response_code(500);
             echo json_encode(["error" => "Delete failed"]);
+            return;
         } 
     }
 

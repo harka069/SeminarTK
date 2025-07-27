@@ -8,7 +8,7 @@ const Email = localStorage.getItem('Email');
 
 document.getElementById('userDropdown').textContent = Name + ' ' +Surname +' ▼';
 
-let savedQueries = [];
+
 document.addEventListener('DOMContentLoaded', () => {
   //logic for logout
 	const logoutLink = document.getElementById('logoutLink');
@@ -17,9 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		alert('You have been logged out.');
 		window.location.href = 'login.html';
 	});
-	
-	fetchSavedQueries();
-	//logic for query
+	//logic for querry
 	const blocks = document.querySelectorAll('.compare-block');
 	blocks.forEach((block, index) => {
 		block.innerHTML = getCompareBlockHTML(index + 1);
@@ -31,13 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		blocks.forEach((block, index) => {
 			const blockId = index + 1;
 			setupSearchButton(blockId);
-			setupsaveQuery(blockId);
+			//setupsaveQuery(blockId);
 		});
 		});
 	
 });
 
-//real query
+//real querry
 async function fetchAndRenderStats(blockId) {
 
 	const prefix = (id) => document.getElementById(`${id}-${blockId}`);
@@ -45,11 +43,9 @@ async function fetchAndRenderStats(blockId) {
 	const model = prefix('model').value;
 	const fuelType = prefix('fuelType').value;
 	const yearFrom = prefix('yearFrom').value;
-	const yearTo = prefix('yearTo').value;
-	const kmFrom = prefix('kmFrom').value;
-	const kmTo = prefix('kmTo').value;
+    const yearTo = prefix('yearTo').value;
 	const loader = prefix('loader');
-	const resultSection = prefix('resultSection');
+	const resultSection = document.querySelector('.resultSection')
 	const tbody = prefix('resultBody');
 	const canvas = prefix('resultChart');
 
@@ -64,81 +60,44 @@ async function fetchAndRenderStats(blockId) {
 		params.append('fuel', fuelMap[fuelType] || fuelType);
 	}
 
-	if (yearFrom) params.append('start_date', `${yearFrom}-01-01`);
-	if (yearTo) params.append('end_date', `${yearTo}-12-31`);
-	if (kmFrom) params.append('min_km', kmFrom);
-	if (kmTo) params.append('max_km', kmTo);
+	if (yearFrom) params.append('start_date', `${yearFrom}`);
+	if (yearTo) params.append('end_date', `${yearTo}`);
+	
 
   	let data;
-
+    console.log(params)   ;
 	try {
 		loader.style.display = 'block'; 
 		const response = await fetchWithAuth(`https://localhost/avtogvisn/api/cars?${params.toString()}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': 'Bearer ' + accessToken
 		}
 		});
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    data = await response.json();
-
-    console.log(`Block ${blockId} data:`, data);
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		data = await response.json();
+		console.log(data)   ;
   	}catch (err) {
-    	alert(`Block ${blockId} - Failed to fetch data: ${err.message}`);
+    	alert(`Failed to fetch data: ${err.message}`);
     	loader.style.display = 'none'; 
-    return;
+   		return;
   	}finally {
+		resultSection.style.display = 'block';
     	loader.style.display = 'none'; 
   	}
 
 	if (data.length === 0) {
 		alert(`Block ${blockId} - No data found for given filters.`);
-		resultSection.style.display = 'none';
+		//resultSection.style.display = 'none';
 		return;
   	}
 
 	const stats = data[0];
+
 	resultSection.style.display = 'block';
-	const percentPASS = Math.round(stats.brezhiben_count*100/stats.total_count);
-	const percentFAIL = Math.round(stats.ne_brezhiben_count*100/stats.total_count)
-	tbody.innerHTML = `
-		<tr>
-		<td>${stats.total_count}</td>
-		<td>${stats.brezhiben_count}</td>
-		<td>${stats.ne_brezhiben_count}</td>
-		</tr>
-		<tr>
-		<td>Percent </td>
-		<td>${percentPASS} %</td>
-		<td>${percentFAIL} %</td>
-		</tr>
-	`;
-
-	if (window[`pieChart${blockId}`]) {
-		window[`pieChart${blockId}`].destroy();
-	}
-
-	const ctx = canvas.getContext('2d');
-	window[`pieChart${blockId}`] = new Chart(ctx, {
-		type: 'pie',
-		data: {
-		labels: ['Passed', 'Failed'],
-		datasets: [{
-			data: [stats.brezhiben_count, stats.ne_brezhiben_count],
-			backgroundColor: ['#28a745', '#dc3545']
-		}]
-		},
-	options: {
-		responsive: true,
-		plugins: {
-			legend: { position: 'bottom' },
-			title: { display: true  }
-		}
-	}
-  });
+    renderChart(data);
+    
 }
 
 function getCompareBlockHTML(id) {
@@ -169,38 +128,12 @@ function getCompareBlockHTML(id) {
       <label for="yearTo-${id}">Year of manufacture (to)</label>
       <input type="number" id="yearTo-${id}" placeholder="2015">
 
-      <label for="kmFrom-${id}">Kilometers (from)</label>
-      <input type="number" id="kmFrom-${id}" placeholder="50000">
-
-      <label for="kmTo-${id}">Kilometers (to)</label>
-      <input type="number" id="kmTo-${id}" placeholder="300000">
       <div class="formBtnContainer">
         <button id="searchBtn-${id}" class="formBtn">Search     </button>
-        <button id="saveBtn-${id}"   class="formBtn">Save Query</button>
       </div>
       <div id="loader-${id}" class="loader"></div>
     </div>
 
-    
- 
-      <div id="resultSection-${id}"  class="resultSection">
-      <table id="resultTable-${id}" class="resultTable" border="1" >
-        <caption style="caption-side: top; font-weight: bold; font-size: 1.2rem; padding: 0.5rem;">
-          Results:
-        </caption>
-        <thead>
-          <tr>
-            <th>Total Cars</th>
-            <th>Passed</th>
-            <th>Failed</th>
-          </tr>
-        </thead>
-        <tbody id="resultBody-${id}"></tbody>
-      </table>
-
-      <canvas id="resultChart-${id}" class="resultChart" ></canvas>
-    </div>
-    
   
   `;
 }
@@ -293,135 +226,7 @@ function setupSearchButton(blockId) {
 		}
 	});
 	}
-function setupsaveQuery(blockId){
-  const btn = document.getElementById(`saveBtn-${blockId}`);
-  if(!btn){
-    console.error("Button with id 'saveBtn-1' not found");
-    return;
-  }
-  btn.addEventListener('click', async () => {
-    console.log("klik na tipko save query", blockId);
 
-    const prefix = (id) => document.getElementById(`${id}-${blockId}`);
-
-    const make = prefix('make').value;
-    const model = prefix('model').value;
-    const fuelType = prefix('fuelType').value;
-    const yearFrom = prefix('yearFrom').value;
-    const yearTo = prefix('yearTo').value;
-    const kmFrom = prefix('kmFrom').value;
-    const kmTo = prefix('kmTo').value;
-
-    const payload = {
-        znamka: make || undefined,
-        model: model || undefined,
-        fuel: fuelType ? { Diesel: 'D', Petrol: 'P', LPG: 'LPG', Electric: '-' }[fuelType] : undefined,
-        start_date: yearFrom ? `${yearFrom}-01-01` : undefined,
-        end_date: yearTo ? `${yearTo}-12-31` : undefined,
-        min_km: kmFrom || undefined,
-        max_km: kmTo || undefined
-      };
-
-    try {
-        const response = await fetchWithAuth('/avtogvisn/api/users/saveQuery', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-
-        console.log(response);
-        if (response.ok) {
-			fetchSavedQueries();
-          	alert('Query saved successfully!');
-        } else {
-          	alert(`Failed to save query: ${result.message || 'Unknown error'}`);
-        }
-    }catch (err) {
-      console.log("Failed to save query");
-    }
-});
-}
-
-async function fetchSavedQueries() {
-     try {
-        const response = await fetchWithAuth('/avtogvisn/api/users/favourite', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-				'Authorization': 'Bearer ' + accessToken,
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-       savedQueries = await response.json();
-
-        const tbody = document.getElementById('queriesBody');
-        tbody.innerHTML = ''; // Clear old entries
-
-        savedQueries.forEach(query => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${query.znamka}</td>
-                <td>${query.model}</td>
-                <td>${query.fuel}</td>
-                <td>${query.start_date}</td>
-                <td>${query.end_date}</td>
-                <td>${query.min_km}</td>
-                <td>${query.max_km}</td>
-                <td>
-                    <button class="query-action-btn btn-delete" data-id="${query.query_id}">🗑</button>
-                    <button class="query-action-btn btn-search1" data-id="${query.query_id}">1️⃣</button>
-                    <button class="query-action-btn btn-search2" data-id="${query.query_id}">2️⃣</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-
-        addEventListeners();
-    } catch (error) {
-        console.error('Failed to fetch saved queries:', error);
-    }
-}
-
-function addEventListeners() {
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', async() => {
-            const id = btn.dataset.id;
-			try {
-				const response = await fetchWithAuth(`/avtogvisn/api/users/favourite?QueryID=${id}`, {
-					method: 'DELETE',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': 'Bearer ' + accessToken,
-					}
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				fetchSavedQueries();
-			}catch (err) {
-				console.error(err);
-			
-			}
-        });
-    });
-
-    document.querySelectorAll('.btn-search1').forEach(btn => {
-    btn.addEventListener('click', () => applySearch(btn.dataset.id, 1));
-});
-document.querySelectorAll('.btn-search2').forEach(btn => {
-    btn.addEventListener('click', () => applySearch(btn.dataset.id, 2));
-});
-}
 
 async function applySearch(queryId, blockId) {
 	const makeSelect = document.getElementById(`make-${blockId}`);
@@ -453,4 +258,57 @@ async function applySearch(queryId, blockId) {
 	document.getElementById(`kmFrom-${blockId}`).value = query.min_km;
 	document.getElementById(`kmTo-${blockId}`).value = query.max_km;
     
+}
+
+let brezhibenChart = null; // Global variable to store the chart instance
+function renderChart(data) {
+  // Extract labels and data
+  const labels = data.map(d => d.year);
+  const brezhibenPercentages = data.map(d =>
+    d.total_count > 0 ? (d.brezhiben_count / d.total_count * 100).toFixed(2) : 0
+  );
+
+  // Destroy old chart if it exists
+  if (brezhibenChart) {
+    brezhibenChart.destroy();
+  }
+
+  // Create new chart
+  const ctx = document.getElementById('brezhibenChart').getContext('2d');
+  brezhibenChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Brezhiben %',
+        data: brezhibenPercentages,
+        borderColor: 'green',
+        backgroundColor: 'rgba(0, 128, 0, 0.1)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: context => `${context.parsed.y}% brezhiben`
+          }
+        },
+        legend: { display: true }
+      },
+      scales: {
+        y: {
+          title: { display: true, text: 'Brezhiben (%)' },
+          min: 0,
+          max: 110
+        },
+        x: {
+          title: { display: true, text: 'Year' }
+        }
+      }
+    }
+  });
 }

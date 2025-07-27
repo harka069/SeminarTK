@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>meni</title>
+    <link rel="stylesheet" href="../CSS/About.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <style>
+    canvas { max-width: 800px; }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <header>
+        <h1>Avtogvišn</h1>
+    </header>
+    <main class="content">
+        <div class="text">
+            <h2> About project</h2>               
+            <p> This project was developed as part of the Seminar iz načrtovanja in razvoja programske opreme v telekomunikacijah course. <br>
+                The main motivation behind the project is to assist users in making informed decisions when buying a used car in Slovenia. 
+                All data used is publicly available from the Ministry of Infrastructure (due to new regulations, data from 2022):<br><br>
+                <a href=https://podatki.gov.si/dataset/rezultati-tehnicnih-pregledov-motornih-vozil>https://podatki.gov.si/dataset/rezultati-tehnicnih-pregledov-motornih-vozil</a> <br><br>
+                The application allows users to compare annual technical inspection results across different car brands and production years. 
+                The concept is inspired by the website <br><br> <a href=www.autolog.si>www.autolog.si</a>
+            </p>    
+        </div>
+        <button type="button" class="button" onclick="window.history.back()">Back</button>   
+    </main>
+
+    <footer class="footer">
+        &copy; 2025 by Krištof. All rights reserved.
+    </footer>
+</div>
+</body>
+
+<script
+    type="module" src="../js/TehnicalIspectionYears.js">
+</script>
+</html>
