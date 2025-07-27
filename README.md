@@ -4,12 +4,8 @@ In this project, developed for a university course, we explored the REST archite
 
 The project uses the following technologies:
 
-    XAMPP – as the environment for the backend, web server, and hosting the database (MariaDB)
-
-    PHP – for building the backend
-
-    JWT (JSON Web Token) – for user authentication
-
-    JavaScript and HTML – for developing the web application
-
-    Python – for building the CLI client
+- XAMPP – as the environment for the backend, web server, and hosting the database (MariaDB)
+- PHP – for building the backend
+- JWT (JSON Web Token) – for user authentication
+- JavaScript and HTML – for developing the web application
+- Python – for building the CLI client
